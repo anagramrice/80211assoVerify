@@ -97,6 +97,7 @@ class Dataparse():
         tsharkProc = subprocess.Popen(tsharkCall, stdout=tsharkOut, executable=self.tshark)
         tsharkProc.wait()
         tsharkOut.close()
+        time.sleep(3)
             
     def startfilter(self, args):
         tsharkProc = subprocess.Popen(args,
@@ -150,11 +151,11 @@ class Dataparse():
                     noise.append(line.split('\t')[8])
                     retries.append(line.split('\t')[-1])
                     clr = line.split('\t')[-2]
-                    if clr == '0':
+                    if clr == '0':                   #management frames
                         framecolor.append('r')
-                    elif clr == '1':
+                    elif clr == '1':                 #control frames
                         framecolor.append('b')
-                    elif clr == '2':
+                    elif clr == '2':                 #data frames
                         framecolor.append('g')
                 pktsgrp = [int(float(i)) for i in pkts]
                 unipkt, cntpkts = np.unique(pktsgrp, return_counts=True)
@@ -232,28 +233,38 @@ class Dataparse():
                 textstr += 'DataOnly\n$\mu=%.2f$\n$\mathrm{median}=%.2f$\n$\sigma=%.2f$'%(mu2, median2, sigma2)
                 plt.text(0.01, 5, textstr, fontsize=11, verticalalignment='center', bbox=props)
                 #manager = plt.get_current_fig_manager()
-                #manager.window.showMaximized()                
-                plt.savefig(''.join((self.path.split('/')[-1],'_plot1.pdf')))
+                #manager.window.showMaximized()                  
+                plt.savefig(''.join((self.path.split('/')[-1],'_plot1.pdf'))) 
+
+                xray = np.arange(int(float(min(pkts))), int(float(max(pkts))+10),5)
                 fig2 = plt.figure(2,figsize=(22, 11))
                 signal_axes = fig2.add_subplot(211) #plt.subplot(211)
-                signal_axes.yaxis_inverted()
-                signal_axes.set_xticks([]) # plt.xticks([])
-                #signal_axes.set_axis_off()
-                signal_axes.set_yticks(np.arange(-20,-100,-10)) #plt.yticks(np.arange(-20,-100,-10))
-                
-                signal_axes.scatter(pkts, rssi,c='g',label="rssi", s=1)
-                signal_axes.scatter(pkts, noise,c='r',label="noise", s=1)
+                signal_axes.invert_yaxis()
+                #print xray, np.arange(-20,-100,-10) # plt.xticks([])
+                signal_axes.plot(pkts, rssi,c='g',marker=',',label="rssi",linestyle='None')
+                signal_axes.plot(pkts, noise,c='r',marker=',',label="noise",linestyle='None')  
+                #signal_axes.scatter(pkts, rssi,c='g',label="rssi", s=1)
+                #signal_axes.scatter(pkts, noise,c='r',label="noise", s=1)
+                signal_axes.set_xticks(signal_axes.get_xlim()[::500])
+                print signal_axes.get_xlim()  
+                print signal_axes.get_yticks() 
+                #print np.arange(-20,-100,-10)  
+                #signal_axes.set_yticks(np.arange(-20,-100,-10)) #plt.yticks(np.arange(-20,-100,-10))
+                signal_axes.set_axis_on()
+                print signal_axes.get_ymajorticklabels()
+                print signal_axes.get_yminorticklabels()
+                #signal_axes.minorticks_on()
                 props = dict(boxstyle='round', facecolor='white', alpha=0.5)
                 rssi = np.array(map(float,rssi))
                 textstr = '$\max=%.2f$\n$\mu=%.2f$\n$\mathrm{median}=%.2f$\n$\sigma=%.2f$\n$\min=%.2f$'%\
                 (max(rssi), rssi.mean(),np.median(rssi),rssi.std(), min(rssi))
-                signal_axes.text(0.95, -60, textstr, fontsize=12, verticalalignment='bottom', bbox=props)
+                signal_axes.text(0.95, -60, textstr, fontsize=12, verticalalignment='bottom', bbox=props, zorder=10)
                 signal_axes.set_ylabel('dBm')
                 signal_axes.legend()
-                signal_axes2 = fig2.add_subplot(212)# plt.subplot(212)
-                signal_axes2.set_xticks([]) #plt.xticks([])
-                signal_axes2.scatter(pkts, retries,color=framecolor, s=1, label="retries")  
-                signal_axes2.set_ylabel('pkt retry\n1=yes 0=not retry')       
+                signal_axes2 = fig2.add_subplot(212)# plt.subplot(212)                
+                signal_axes2.scatter(pkts, retries,color=framecolor, s=1, label="retries")
+                signal_axes2.set_xticks(xray) #plt.xticks([])
+                signal_axes2.set_ylabel('pkt retry\n1=yes 0=not retry')    
                 fig2.set_size_inches(22,11)
                 fig2.savefig(''.join((self.path.split('/')[-1],'__plot2.pdf')))
                 #plt.show()

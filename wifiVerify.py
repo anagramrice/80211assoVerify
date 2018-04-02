@@ -99,6 +99,7 @@ class WifiConnparse():
                 print 'Processing pcap to text file:  ' + (time.strftime("%I:%M:%S")) + '\r',
                 time.sleep(2)
             print 'Finished process pcap to text file:  ' + (time.strftime("%I:%M:%S"))
+            time.sleep(3)
 
     def checkMACaddr(self, mac):
         chk = re.search("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$",mac)
@@ -257,8 +258,13 @@ class WifiConnparse():
         uniAuth, cntAuth = np.unique(binAuth, return_counts=True)
         dbeacons = dict(zip(unibeac, cntbeac))
         dict_auth = dict(zip(uniAuth, cntAuth))
-        #d = {x:binBeacons.count(x) for x in binBeacons}        
-        brate = plt.stem(dict_auth.keys(), dict_auth.values(),'lawngreen', linewidth=1.0, markerfmt=" ", basefmt=" ",label="authRetries")
+        if self.verbose:
+            print unibeac, cntbeac
+            print uniAuth, cntAuth
+            print dict_auth
+        #d = {x:binBeacons.count(x) for x in binBeacons}
+        if len(dict_auth) > 0:
+            brate = plt.stem(dict_auth.keys(), dict_auth.values(),'lawngreen',label="authRetries")
         power = plt.plot(powersave, [1]*len(powersave),'bv',label="STA -> powersave")
         authseq1 = plt.plot(auth1, [1]*len(auth1),'go',label="Auth seq1")
         authseq2 = plt.plot(auth2, [1]*len(auth2),'o', color='lime',label="Auth seq2")
